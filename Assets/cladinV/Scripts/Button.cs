@@ -8,11 +8,11 @@ using UnityEngine.XR;
 namespace cladinV {
     public class Button {
         private InputDevice _device;
-        private static bool[] _lastButtonStates = new bool[2];
-        static readonly Dictionary<InputFeatureUsage<bool>, bool> _getLastButtonState = new Dictionary<InputFeatureUsage<bool>, bool> {
-            {CommonUsages.triggerButton, _lastButtonStates[0]},
-            {CommonUsages.gripButton, _lastButtonStates[1]}
+        private static InputFeatureUsage<bool>[] _availableButtons = {
+            CommonUsages.triggerButton,
+            CommonUsages.gripButton
         };
+        private static bool[] _lastButtonStates = new bool[_availableButtons.Length];
 
         public Button(InputDevice device) {
             _device = device;
@@ -25,7 +25,7 @@ namespace cladinV {
 
        public bool GetButtonDown(InputFeatureUsage<bool> button) {
            try {
-               bool lastState = _getLastButtonState[button];
+               bool lastState = GetLastButtonState(button);
                bool currentState = GetButton(button);
                if (currentState == true && currentState != lastState) {
                    return true;
@@ -33,17 +33,20 @@ namespace cladinV {
                    return false;
                }
            } 
-           catch (Exception e){
-               Debug.Log(e);
+           catch {
                return false;
            }
        }
 
-       public void UpdateButtonStates() {
-           var availableButtons = _getLastButtonState.Keys.ToArray();
-           int length = availableButtons.Length;
+       public bool GetLastButtonState(InputFeatureUsage<bool> button) {
+           int index = Array.IndexOf(_availableButtons, button);
+           return _lastButtonStates[index];
+       }
+
+       public void UpdateLastButtonStates() {
+           int length = _availableButtons.Length;
            for (int i = 0; i < length; i++) {
-               _lastButtonStates[i] = GetButton(availableButtons[i]);
+                _lastButtonStates[i] = GetButton(_availableButtons[i]);
            }
        }
     }
